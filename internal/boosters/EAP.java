@@ -1,9 +1,7 @@
 package internal.boosters;
 
-public class EAP extends boosters {
+public class EAP extends Booster {
     public EAP () {
-    this.BoostGain = 6470 ;
-    this.Weight = 270 ;
-    this.price = 30 ;
-}
+        super(6470, 270, 30);
+    }
 }

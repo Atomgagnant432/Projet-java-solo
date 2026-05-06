@@ -4,7 +4,7 @@ import internal.missions.missions;
 import internal.rocket.rocket;
 import java.time.LocalDateTime;
 
-public class Lancement {
+public class start {
     private final rocket fusee;
     private final missions mission;
     private final LocalDateTime date;
@@ -12,15 +12,15 @@ public class Lancement {
     private final String raison;
     private final int coutTotal;
 
-    public Lancement(rocket fusee, missions mission, LocalDateTime date, boolean succes, String raison, int coutTotal) {
+    public start(rocket fusee, missions mission, LocalDateTime date, boolean succes, String raison, int coutTotal) {
         if (fusee == null) {
-            throw new IllegalArgumentException("fusee ne peut pas être null");
+            throw new IllegalArgumentException("rocket cannot be null");
         }
         if (mission == null) {
-            throw new IllegalArgumentException("mission ne peut pas être null");
+            throw new IllegalArgumentException("mission cannot be null");
         }
         if (date == null) {
-            throw new IllegalArgumentException("date ne peut pas être null");
+            throw new IllegalArgumentException("date cannot be null");
         }
 
         this.fusee = fusee;
@@ -31,9 +31,12 @@ public class Lancement {
         this.coutTotal = coutTotal;
     }
 
-    public static Lancement fromSimulation(rocket fusee, missions mission, boolean succes, String raison) {
-        int cout = fusee.getTotalCost();
-        return new Lancement(fusee, mission, LocalDateTime.now(), succes, raison, cout);
+    public static start fromSimulation(rocket fusee, missions mission, boolean succes, String raison) {
+        double carburant = fusee.getRequiredFuel(mission);
+        int cout = fusee.getLaunchCost(mission);
+        System.out.println("Carburant nécessaire (tonnes): " + carburant);
+        System.out.println("Coût total lancement (€): " + cout);
+        return new start(fusee, mission, LocalDateTime.now(), succes, raison, cout);
     }
 
     public rocket getFusee() {
@@ -62,11 +65,13 @@ public class Lancement {
 
     @Override
     public String toString() {
+        double carburant = fusee.getRequiredFuel(mission);
         return "Lancement{" +
                 "mission=" + mission.getClass().getSimpleName() +
                 ", date=" + date +
                 ", succes=" + succes +
                 ", raison='" + raison + '\'' +
+                ", carburantNecessaire=" + carburant +
                 ", coutTotal=" + coutTotal +
                 '}';
     }

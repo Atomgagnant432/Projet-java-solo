@@ -1,8 +1,6 @@
 package internal.boosters;
-public class SRB extends boosters {
+public class SRB extends Booster {
     public SRB () {
-        this.BoostGain = 12500;
-        this.Weight = 590;
-        this.price = 55;
+        super(12500, 590, 55);
     }
 }
