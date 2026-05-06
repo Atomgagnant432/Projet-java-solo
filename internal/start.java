@@ -35,7 +35,7 @@ public class start {
         double carburant = fusee.getRequiredFuel(mission);
         int cout = fusee.getLaunchCost(mission);
         System.out.println("Carburant nécessaire (tonnes): " + carburant);
-        System.out.println("Coût total lancement (€): " + cout);
+        System.out.println("Coût total lancement (M€): " + cout + " M€");
         return new start(fusee, mission, LocalDateTime.now(), succes, raison, cout);
     }
 
@@ -67,12 +67,13 @@ public class start {
     public String toString() {
         double carburant = fusee.getRequiredFuel(mission);
         return "Lancement{" +
-                "mission=" + mission.getClass().getSimpleName() +
-                ", date=" + date +
-                ", succes=" + succes +
-                ", raison='" + raison + '\'' +
-                ", carburantNecessaire=" + carburant +
-                ", coutTotal=" + coutTotal +
-                '}';
+                "\n  mission: " + mission.getClass().getSimpleName() +
+                "\n  date: " + date +
+                "\n  succes: " + succes +
+                "\n  raison: '" + raison + '\'' +
+                "\n  carburant necessaire (tonnes): " + carburant +
+                "\n  cout total: " + coutTotal + " M€" +
+                "\n}";
     }
 }
+

@@ -28,6 +28,7 @@ import java.util.Scanner;
 
 public class Menu {
     private static final Scanner scanner = new Scanner(System.in);
+    private static final double RANDOM_FAILURE_PROBABILITY = 0.05;
 
     private static missions missionSelectionnee;
     private static rocket fusee;
@@ -35,9 +36,9 @@ public class Menu {
     public static int printMenu() {
         while (true) {
             System.out.println();
-            System.out.println("=== Simulateur de fusée ===");
+            System.out.println("=== Simulateur de fusee ===");
             System.out.println("1) Choisir une mission");
-            System.out.println("2) Configurer la fusée");
+            System.out.println("2) Configurer la fusee");
             System.out.println("3) Lancer la simulation");
             System.out.println("0) Quitter");
             System.out.print("Votre choix: ");
@@ -46,12 +47,12 @@ public class Menu {
             try {
                 int choice = Integer.parseInt(input);
                 if (choice < 0 || choice > 3) {
-                    System.out.println("Choix invalide (0 à 3).");
+                    System.out.println("Choix invalide (0 a 3).");
                     continue;
                 }
                 return choice;
             } catch (NumberFormatException e) {
-                System.out.println("Entrée invalide : veuillez entrer un nombre.");
+                System.out.println("Entree invalide : veuillez entrer un nombre.");
             }
         }
     }
@@ -78,12 +79,12 @@ public class Menu {
             try {
                 int value = Integer.parseInt(input);
                 if (value < minInclusive || value > maxInclusive) {
-                    System.out.println("Choix invalide (" + minInclusive + " à " + maxInclusive + ").");
+                    System.out.println("Choix invalide (" + minInclusive + " a " + maxInclusive + ").");
                     continue;
                 }
                 return value;
             } catch (NumberFormatException e) {
-                System.out.println("Entrée invalide : veuillez entrer un nombre.");
+                System.out.println("Entree invalide : veuillez entrer un nombre.");
             }
         }
     }
@@ -105,33 +106,33 @@ public class Menu {
                     case 3 -> new moon();
                     case 4 -> new mars();
                     case 5 -> new uranus();
-                    default -> throw new IllegalStateException("Choix mission invalide");
+                    default -> throw new IllegalStateException("Invalid mission choice");
                 };
 
-        System.out.println("Mission sélectionnée: " + missionSelectionnee.getClass().getSimpleName());
+        System.out.println("Mission selectionnee: " + missionSelectionnee.getClass().getSimpleName());
     }
 
     private static void configurerFusee() {
         System.out.println();
-        System.out.println("=== Configurer la fusée ===");
+        System.out.println("=== Configurer la fusee ===");
 
         spacelauncher launcher = choisirLauncher();
         capsule capsule = choisirCapsule();
-        List<Booster> boosters = choisirBoosters(launcher.MaxBooster);
+        List<Booster> boosters = choisirBoosters(launcher, capsule);
 
         fusee = new rocket(launcher, capsule, boosters);
-        System.out.println("Fusée configurée.");
+        System.out.println("Fusee configuree.");
         afficherPoidsEtCapacites();
-        System.out.println("Prix fusée (€): " + fusee.getRocketPrice());
+        System.out.println("Prix fusee (EUR): " + fusee.getRocketPrice());
         System.out.println("Boosters: " + fusee.getBoosterCount() + "/" + launcher.MaxBooster);
     }
 
     private static spacelauncher choisirLauncher() {
         System.out.println("Choisir un lanceur:");
-        System.out.println("1) Ariane 5");
-        System.out.println("2) Falcon 9");
-        System.out.println("3) Saturn V");
-        System.out.println("4) SLS");
+        System.out.println("1) Ariane 5 (charge utile max: 20 t)");
+        System.out.println("2) Falcon 9 (charge utile max: 22 t)");
+        System.out.println("3) Saturn V (charge utile max: 140 t)");
+        System.out.println("4) SLS (charge utile max: 130 t)");
 
         int choice = askInt("Votre choix: ", 1, 4);
         return switch (choice) {
@@ -139,16 +140,16 @@ public class Menu {
             case 2 -> new falcon9();
             case 3 -> new saturnV();
             case 4 -> new sls();
-            default -> throw new IllegalStateException("Choix lanceur invalide");
+            default -> throw new IllegalStateException("Invalid launcher choice");
         };
     }
 
     private static capsule choisirCapsule() {
         System.out.println("Choisir une capsule:");
-        System.out.println("1) Apollo");
-        System.out.println("2) Crew Dragon");
-        System.out.println("3) Cargo Dragon");
-        System.out.println("4) Orion");
+        System.out.println("1) Apollo (poids: 5.6 t)");
+        System.out.println("2) Crew Dragon (poids: 12.0 t)");
+        System.out.println("3) Cargo Dragon (poids: 9.5 t)");
+        System.out.println("4) Orion (poids: 10.4 t)");
 
         int choice = askInt("Votre choix: ", 1, 4);
         return switch (choice) {
@@ -156,32 +157,58 @@ public class Menu {
             case 2 -> new crewdragon();
             case 3 -> new cargodragon();
             case 4 -> new orion();
-            default -> throw new IllegalStateException("Choix capsule invalide");
+            default -> throw new IllegalStateException("Invalid capsule choice");
         };
     }
 
-    private static List<Booster> choisirBoosters(int maxBoosters) {
+    private static List<Booster> choisirBoosters(spacelauncher launcher, capsule capsule) {
         List<Booster> boosters = new ArrayList<>();
-        if (maxBoosters <= 0) {
+        if (launcher.MaxBooster <= 0) {
             return boosters;
         }
 
-        System.out.println("Configurer les boosters (max " + maxBoosters + "):");
-        int count = askInt("Combien de boosters (0 à " + maxBoosters + "): ", 0, maxBoosters);
+        System.out.println("Configurer les boosters (max " + launcher.MaxBooster + "):");
+        System.out.println("Charge utile max supportee: " + launcher.payload + " t");
+        System.out.println("Poids capsule: " + capsule.Weight + " t");
+        int count = askInt("Combien de boosters (0 a " + launcher.MaxBooster + "): ", 0, launcher.MaxBooster);
+
         for (int i = 1; i <= count; i++) {
-            System.out.println("Booster #" + i + ":");
-            System.out.println("1) BE-3");
-            System.out.println("2) EAP");
-            System.out.println("3) SRB");
-            int choice = askInt("Votre choix: ", 1, 3);
-            Booster booster =
-                    switch (choice) {
-                        case 1 -> new BE3();
-                        case 2 -> new EAP();
-                        case 3 -> new SRB();
-                        default -> throw new IllegalStateException("Choix booster invalide");
-                    };
-            boosters.add(booster);
+            while (true) {
+                double currentMass = capsule.Weight;
+                for (Booster b : boosters) {
+                    currentMass += b.getWeight();
+                }
+                double remaining = launcher.payload - currentMass;
+
+                System.out.println();
+                System.out.println("Booster #" + i + " (marge charge utile: " + remaining + " t):");
+                System.out.println("0) Annuler (arreter d'ajouter des boosters)");
+                System.out.println("1) BE-3 (25 t)");
+                System.out.println("2) EAP (270 t)");
+                System.out.println("3) SRB (590 t)");
+
+                int choice = askInt("Votre choix: ", 0, 3);
+                if (choice == 0) {
+                    return boosters;
+                }
+                Booster booster =
+                        switch (choice) {
+                            case 1 -> new BE3();
+                            case 2 -> new EAP();
+                            case 3 -> new SRB();
+                            default -> throw new IllegalStateException("Invalid booster choice");
+                        };
+
+                double nextMass = currentMass + booster.getWeight();
+                if (nextMass > launcher.payload) {
+                    System.out.println(
+                            "Surcharge: poids total deviendrait " + nextMass + " t (max " + launcher.payload + " t). Choisis un autre booster.");
+                    continue;
+                }
+
+                boosters.add(booster);
+                break;
+            }
         }
         return boosters;
     }
@@ -191,11 +218,11 @@ public class Menu {
         System.out.println("=== Lancer la simulation ===");
 
         if (missionSelectionnee == null) {
-            System.out.println("Aucune mission sélectionnée. Choisis d'abord une mission (menu 1).");
+            System.out.println("Aucune mission selectionnee. Choisis d'abord une mission (menu 1).");
             return;
         }
         if (fusee == null) {
-            System.out.println("Aucune fusée configurée. Configure d'abord la fusée (menu 2).");
+            System.out.println("Aucune fusee configuree. Configure d'abord la fusee (menu 2).");
             return;
         }
 
@@ -207,8 +234,22 @@ public class Menu {
         if (missionSelectionnee.PeopleNeeded != null && missionSelectionnee.PeopleNeeded) {
             if (!fusee.getCapsule().PeopleIn) {
                 succes = false;
-                raison =
-                        "La mission nécessite des astronautes, mais la capsule ne transporte personne.";
+                raison = "Capsule incompatible avec une mission habitee";
+            }
+        }
+
+        if (succes) {
+            if (fusee.getBoosterCount() > fusee.getLauncher().MaxBooster) {
+                succes = false;
+                raison = "Trop de boosters";
+            }
+        }
+
+        if (succes) {
+            double mass = fusee.getTotalMass();
+            if (mass > fusee.getLauncher().payload) {
+                succes = false;
+                raison = "Surcharge depassee (" + mass + " t > " + fusee.getLauncher().payload + " t)";
             }
         }
 
@@ -216,8 +257,15 @@ public class Menu {
             double carburant = fusee.getRequiredFuel(missionSelectionnee);
             if (carburant > fusee.getLauncher().MaxFuel) {
                 succes = false;
-                raison =
-                        "Carburant nécessaire (" + carburant + ") > capacité MaxFuel (" + fusee.getLauncher().MaxFuel + ").";
+                raison = "Carburant insuffisant";
+            }
+        }
+
+        if (succes) {
+            double roll = Math.random();
+            if (roll < RANDOM_FAILURE_PROBABILITY) {
+                succes = false;
+                raison = "Anomalie technique imprevue";
             }
         }
 
@@ -230,13 +278,25 @@ public class Menu {
             return;
         }
 
+        double totalMass = fusee.getTotalMass();
+        double payloadMax = fusee.getLauncher().payload;
+        double margin = payloadMax - totalMass;
+
         System.out.println();
-        System.out.println("--- Poids & capacités ---");
-        System.out.println("Lanceur: " + fusee.getLauncher().getClass().getSimpleName());
-        System.out.println("  Payload max supporté: " + fusee.getLauncher().payload);
-        System.out.println("  Carburant max (MaxFuel): " + fusee.getLauncher().MaxFuel);
-        System.out.println("Capsule: " + fusee.getCapsule().getClass().getSimpleName());
-        System.out.println("  Poids capsule: " + fusee.getCapsule().Weight);
+        System.out.println("--- Poids & capacites ---");
+        System.out.println(
+                "Lanceur: "
+                        + fusee.getLauncher().getClass().getSimpleName()
+                        + " (charge utile max: "
+                        + payloadMax
+                        + " t)");
+        System.out.println("  Carburant max: " + fusee.getLauncher().MaxFuel + " t");
+        System.out.println(
+                "Capsule: "
+                        + fusee.getCapsule().getClass().getSimpleName()
+                        + " (poids: "
+                        + fusee.getCapsule().Weight
+                        + " t)");
 
         if (fusee.getBoosters().isEmpty()) {
             System.out.println("Boosters: aucun");
@@ -245,12 +305,19 @@ public class Menu {
             int index = 1;
             for (Booster booster : fusee.getBoosters()) {
                 System.out.println(
-                        "  #" + index + " " + booster.getClass().getSimpleName() + " - poids: " + booster.getWeight());
+                        "  #"
+                                + index
+                                + " "
+                                + booster.getClass().getSimpleName()
+                                + " (poids: "
+                                + booster.getWeight()
+                                + " t)");
                 index++;
             }
         }
 
-        System.out.println("Poids total (capsule + boosters): " + fusee.getTotalMass());
+        System.out.println("Poids total (capsule + boosters): " + totalMass + " t");
+        System.out.println("Marge charge utile: " + margin + " t");
         System.out.println("-------------------------");
         System.out.println();
     }
